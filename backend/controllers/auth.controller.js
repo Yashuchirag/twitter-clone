@@ -104,4 +104,4 @@ export const getMe = async (req, res) => {
         console.log('Error in getMe controller', error.message);
         return res.status(500).json({success: false, message: error.message});
     }
-}
+};
