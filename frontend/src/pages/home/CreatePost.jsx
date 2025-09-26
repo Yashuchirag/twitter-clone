@@ -15,6 +15,7 @@ const CreatePost = () => {
 
 	const {mutate: createPost, isPending, isError, error} = useMutation({
 		mutationFn: async ({text, img}) => {
+			console.log(text, img);
 			try {
 				const res = await fetch("/api/post/create", {
 					method: "POST",
@@ -47,6 +48,7 @@ const CreatePost = () => {
 
 	const handleImgChange = (e) => {
 		const file = e.target.files[0];
+		console.log(file);
 		if (file) {
 			const reader = new FileReader();
 			reader.onload = () => {
