@@ -8,11 +8,11 @@ const Posts = ({feedType}) => {
 	const getPostEndPoint = () => {
 		switch (feedType) {
 			case "forYou":
-				return "/api/posts/all";
+				return "/api/post/all";
 			case "following":
-				return "/api/posts/following";
+				return "/api/post/following";
 			default:
-				return "/api/posts/all";
+				return "/api/post/all";
 		}
 	}
 
@@ -51,7 +51,7 @@ const Posts = ({feedType}) => {
 			{!isLoading && !isRefetching && posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
 			{!isLoading && !isRefetching && posts && (
 				<div>
-					{posts.map((post) => (
+					{posts.posts.map((post) => (
 						<Post key={post._id} post={post} />
 					))}
 				</div>
