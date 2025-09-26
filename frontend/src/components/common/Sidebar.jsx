@@ -13,7 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const Sidebar = () => {
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
+	// const navigate = useNavigate();
 	const {mutate: logout} = useMutation({
 		mutationFn: async () => {
 			try {
@@ -45,7 +45,6 @@ const Sidebar = () => {
 	});
 	
 	const {data: authUser, isLoading } = useQuery({queryKey: ["authUser"]});
-	console.log('Auth user', authUser?.user?.fullName);
 	
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
