@@ -9,6 +9,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatPostDate } from "../../utils/date";
 
 
 const Post = ({ post }) => {
@@ -75,6 +76,37 @@ const Post = ({ post }) => {
 			toast.error(error.message);
 		}
 	});
+
+	const { mutate: commentPost, isPending: isCommenting } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`/api/post/comment/${post._id}`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ text: comment }),
+				});
+				
+
+				const data = await res.json();
+				if (!res.ok) {
+					throw new Error(data.error || "Failed to comment post");
+				}
+				return data;
+			} catch (error) {
+				throw new Error(error.message);
+			}
+		},
+		onSuccess: () => {
+			toast.success("Post commented successfully");
+			setComment("");
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		}
+	});
 	
 	const postOwner = post.user;
 	const isLiked = Array.isArray(post.likes) && authUser?._id
@@ -86,9 +118,8 @@ const Post = ({ post }) => {
 
 	const isMyPost = authUser?._id === post?.postOwner?._id;
 
-	const formattedDate = "1h";
+	const formattedDate = formatPostDate(post.createdAt);
 
-	const isCommenting = false;
 
 	const handleDeletePost = () => {
 		deletePost();
@@ -96,9 +127,12 @@ const Post = ({ post }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if (isCommenting) return;
+		commentPost();
 	};
 
 	const handleLikePost = () => {
+		if (isLiking) return;
 		likePost();
 	};
 
