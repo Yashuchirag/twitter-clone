@@ -30,7 +30,7 @@ const Posts = ({feedType}) => {
 				}
 				return data;
 			} catch (error) {
-				console.log(error);
+				throw new Error(error.message);
 			}
 		},
 	});
@@ -48,10 +48,10 @@ const Posts = ({feedType}) => {
 					<PostSkeleton />
 				</div>
 			)}
-			{!isLoading && !isRefetching && posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
+			{!isLoading && !isRefetching && (posts?.posts || []).length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
 			{!isLoading && !isRefetching && posts && (
 				<div>
-					{posts.posts.map((post) => (
+					{(posts?.posts || []).map((post) => (
 						<Post key={post._id} post={post} />
 					))}
 				</div>
