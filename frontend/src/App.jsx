@@ -12,6 +12,13 @@ import { Toaster } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import { Navigate } from 'react-router-dom';
+import ErrorBoundary from './pages/error/ErrorBoundary';
+
+const ProtectedRoute = ({ children, authUser, isLoading }) => {
+  if (isLoading) return <LoadingSpinner size='lg' />; // wait for auth check
+  if (!authUser) return <Navigate to="/login" replace />;
+  return children;
+};
 
 function App() {
   const {data:authUser, isLoading, isError, error} = useQuery({
@@ -47,16 +54,17 @@ function App() {
     <div className="flex max-w-6xl mx-auto">
       {/* Common component */}
       {authUser && <Sidebar />}
-      <Routes>
-        <Route path='/' element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path='/signup' element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path='/notifications' element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
-        <Route path='/profile/:username' element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
-      </Routes>
-      {authUser && <RightPanel />}
-      <Toaster />
-      
+      <ErrorBoundary>
+        <Routes>
+          <Route path='/' element={<ProtectedRoute authUser={authUser} isLoading={isLoading} children={<HomePage />} />} />
+          <Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
+          <Route path='/signup' element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+          <Route path='/notifications' element={<ProtectedRoute authUser={authUser} isLoading={isLoading} children={<NotificationPage />} />} />
+          <Route path='/profile/:username' element={<ProtectedRoute authUser={authUser} isLoading={isLoading} children={<ProfilePage />} />} />
+        </Routes>
+        {authUser && <RightPanel />}
+        <Toaster />
+      </ErrorBoundary>
     </div>
   )
 }
