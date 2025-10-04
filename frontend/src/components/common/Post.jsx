@@ -44,7 +44,6 @@ const Post = ({ post }) => {
 				const res = await fetch(`/api/post/like/${post._id}`, {
 					method: "POST",
 				});
-				console.log('Response', res);
 				const data = await res.json();
 				if (!res.ok) {
 					throw new Error(data.error || "Failed to like post");
@@ -57,20 +56,20 @@ const Post = ({ post }) => {
 		onSuccess: (updatedLikes) => {
 			// this is not good user experience
 			toast.success("Post liked successfully");
-			// queryClient.invalidateQueries({ queryKey: ["posts"] });
-			queryClient.setQueryData(["posts"], (oldData) => {
-				if (!oldData) return oldData;
-				console.log('oldData', oldData);
-				return oldData.posts.map((p) => {
-					if (p._id === post._id) {
-						return {
-							...p,
-							likes: updatedLikes,
-						};
-					}
-					return p;
-				});
-			});
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
+			// queryClient.setQueryData(["posts"], (oldData) => {
+			// 	if (!oldData) return oldData;
+			// 	console.log('oldData', oldData);
+			// 	return oldData.posts.map((p) => {
+			// 		if (p._id === post._id) {
+			// 			return {
+			// 				...p,
+			// 				likes: updatedLikes,
+			// 			};
+			// 		}
+			// 		return p;
+			// 	});
+			// });
 		},
 		onError: (error) => {
 			toast.error(error.message);
@@ -112,9 +111,7 @@ const Post = ({ post }) => {
 	const isLiked = Array.isArray(post.likes) && authUser?._id
   	? post.likes.includes(authUser._id.toString())
   	: false;
-	
-	console.log('Post Likes: ', post.likes);
-	console.log('isLiked', isLiked);
+
 
 	const isMyPost = authUser?._id === post?.postOwner?._id;
 

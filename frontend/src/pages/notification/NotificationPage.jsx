@@ -27,6 +27,7 @@ const NotificationPage = () => {
 	});
 	const notifications = notificationsData?.notifications || [];
 
+	const queryClient = useQueryClient();
 	const { mutate: deleteNotifications } = useMutation({
 		mutationFn: async () => {
 			try {
@@ -44,7 +45,7 @@ const NotificationPage = () => {
 		},
 		onSuccess: () => {
 			toast.success("Notifications deleted successfully");
-			// queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 		},
 		onError: (error) => {
 			toast.error(error.message);
@@ -59,7 +60,7 @@ const NotificationPage = () => {
 				<div className='flex justify-between items-center p-4 border-b border-gray-700'>
 					<p className='font-bold'>Notifications</p>
 					<div className='dropdown '>
-						<div tabIndex={0} role='button' className='m-1'>
+						<div tabIndex={0} role='button' className='m-1 tooltip' data-tip="Settings">
 							<IoSettingsOutline className='w-4' />
 						</div>
 						<ul

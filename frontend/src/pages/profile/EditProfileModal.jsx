@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 const EditProfileModal = () => {
 	const [formData, setFormData] = useState({
@@ -15,6 +16,27 @@ const EditProfileModal = () => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			const res = await fetch(`/api/user/update`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(formData),
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to update profile");
+			toast.success("Profile updated successfully");
+			document.getElementById("edit_profile_modal").close();
+			
+
+		} catch (error) {
+			toast.error(error.message);
+		}
+	};
+
 	return (
 		<>
 			<button
@@ -28,10 +50,7 @@ const EditProfileModal = () => {
 					<h3 className='font-bold text-lg my-3'>Update Profile</h3>
 					<form
 						className='flex flex-col gap-4'
-						onSubmit={(e) => {
-							e.preventDefault();
-							alert("Profile updated successfully");
-						}}
+						onSubmit={handleSubmit}
 					>
 						<div className='flex flex-wrap gap-2'>
 							<input
