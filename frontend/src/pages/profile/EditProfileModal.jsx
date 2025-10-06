@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { toast } from "react-hot-toast";
-import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
-
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
+import { useQuery } from "@tanstack/react-query";
 
 const EditProfileModal = () => {
 	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
@@ -15,34 +14,12 @@ const EditProfileModal = () => {
 		newPassword: "",
 		currentPassword: "",
 	});
-	const queryClient = useQueryClient();
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-		mutationFn: async (formData) => {
-			const res = await fetch(`/api/user/update`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(formData),
-			});
-			console.log("Res inside EditProfileModal: ", res);
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.error || "Failed to update profile");
-			return data;
-		},
-		onSuccess: () => {
-			toast.success("Profile updated successfully");
-			queryClient.invalidateQueries({ queryKey: ["user"] });
-			queryClient.invalidateQueries({ queryKey: ["authUser"] });
-			document.getElementById("edit_profile_modal").close();
-		},
-		onError: (err) => toast.error(err.message),
-	});
+	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile(formData);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();

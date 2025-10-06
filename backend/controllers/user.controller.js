@@ -93,6 +93,7 @@ export const getSuggestedUsers = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const { fullName, email, username, currentPassword, newPassword, bio, link } = req.body;
+    
     const userId = req.user._id;
     const profileImgFile = req.files?.profileImg?.[0];
     const coverImgFile = req.files?.coverImg?.[0];
@@ -158,7 +159,6 @@ export const updateUser = async (req, res) => {
         await user.save();
 
         // password should be null while displaying but should be added to the database
-        
         user.password = null;
         res.status(200).json({success: true, user});
         

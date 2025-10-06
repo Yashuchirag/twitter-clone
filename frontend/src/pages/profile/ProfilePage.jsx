@@ -1,18 +1,17 @@
 import { useRef, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 import useFollow from "../../hooks/useFollow";
+import useUpdateUserProfile from "../../hooks/useUpdateUserProfile";
 
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { formatPostDate } from "../../utils/date";
 
 
@@ -30,8 +29,6 @@ const ProfilePage = () => {
 
 	const { follow, isPending } = useFollow();
 	const { data: authUser} = useQuery({queryKey: ["authUser"]});
-
-	const queryClient = useQueryClient();
 
 
 	// Fetch User Profile
@@ -51,32 +48,10 @@ const ProfilePage = () => {
 	});
 
 	// Mutation for profile update
-	const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
-		mutationFn: async ({coverImgFile, profileImgFile}) => {
-			console.log("Body being sent: ", { coverImgFile, profileImgFile });
-			const formData = new FormData();
-			formData.append("coverImg", coverImgFile);
-			formData.append("profileImg", profileImgFile);
-			console.log("FormData being sent:", Object.fromEntries(formData.entries()));
-
-			const res = await fetch(`/api/user/update`, {
-				method: "POST",
-				body: formData,
-			});
-			const data = await res.json();
-			console.log("Data inside ProfileUpdate: ", res);
-			if (!res.ok) throw new Error(data.error || "Failed to update profile");
-			return data;
-		},
-		onSuccess: () => {
-			toast.success("Profile updated successfully");
-			Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-				queryClient.invalidateQueries({ queryKey: ["userProfile"] })				
-			]);
-		},
-		onError: (err) => toast.error(err.message),
-	});
+	const formData = new FormData();
+    formData.append("coverImg", coverImgFile);
+    formData.append("profileImg", profileImgFile);
+	const { updateProfile, isUpdatingProfile } = useUpdateUserProfile(formData);
 
 	const isMyProfile = authUser?.user?._id === userData?.user?._id;
 	const amIFollowing = authUser?.user?.following?.includes(userData?.user?._id);
