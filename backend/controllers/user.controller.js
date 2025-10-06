@@ -93,9 +93,13 @@ export const getSuggestedUsers = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const { fullName, email, username, currentPassword, newPassword, bio, link } = req.body;
-    let { profileImg, coverImg } = req.files || {};
-
     const userId = req.user._id;
+    const profileImgFile = req.files?.profileImg?.[0];
+    const coverImgFile = req.files?.coverImg?.[0];
+
+    let profileImg;
+    let coverImg;
+
     try {
         let user = await User.findById(userId);
         if (!user) return res.status(404).json({success: false, message: "User not found"});
@@ -117,18 +121,30 @@ export const updateUser = async (req, res) => {
             await user.save();
         }
 
-        if (profileImg) {
+        const uploadToCloudinary = async (fileBuffer) => {
+            return new Promise((resolve, reject) => {
+              const stream = cloudinary.uploader.upload_stream((error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              });
+              stream.end(fileBuffer);
+            });
+        };
+
+        if (profileImgFile) {
             if (user.profileImg) {
-                await cloudinary.uploader.destroy(user.profileImg.split("/").pop().split(".")[0]);
+                const publicId = user.profileImg.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
             }
-            const uploadedResponse = await cloudinary.uploader.upload(profileImg);
+            const uploadedResponse = await uploadToCloudinary(profileImgFile.buffer);
             profileImg = uploadedResponse.secure_url;
         }
-        if (coverImg) {
+        if (coverImgFile) {
             if (user.coverImg) {
-                await cloudinary.uploader.destroy(user.coverImg.split("/").pop().split(".")[0]);
+                const publicId = user.coverImg.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
             }
-            const uploadedResponse = await cloudinary.uploader.upload(coverImg);
+            const uploadedResponse = await uploadToCloudinary(coverImgFile.buffer);
             coverImg = uploadedResponse.secure_url;
         }
 
@@ -142,6 +158,7 @@ export const updateUser = async (req, res) => {
         await user.save();
 
         // password should be null while displaying but should be added to the database
+        
         user.password = null;
         res.status(200).json({success: true, user});
         

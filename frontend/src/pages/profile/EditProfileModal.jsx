@@ -1,24 +1,28 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+
 
 const EditProfileModal = () => {
+	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
 	const [formData, setFormData] = useState({
-		fullName: "",
-		username: "",
-		email: "",
-		bio: "",
-		link: "",
+		fullName: authUser?.user?.fullName,
+		username: authUser?.user?.username,
+		email: authUser?.user?.email,
+		bio: authUser?.user?.bio,
+		link: authUser?.user?.link,
 		newPassword: "",
 		currentPassword: "",
 	});
+	const queryClient = useQueryClient();
 
 	const handleInputChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		try {
+	const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
+		mutationFn: async (formData) => {
 			const res = await fetch(`/api/user/update`, {
 				method: "POST",
 				headers: {
@@ -26,15 +30,23 @@ const EditProfileModal = () => {
 				},
 				body: JSON.stringify(formData),
 			});
+			console.log("Res inside EditProfileModal: ", res);
 			const data = await res.json();
 			if (!res.ok) throw new Error(data.error || "Failed to update profile");
+			return data;
+		},
+		onSuccess: () => {
 			toast.success("Profile updated successfully");
+			queryClient.invalidateQueries({ queryKey: ["user"] });
+			queryClient.invalidateQueries({ queryKey: ["authUser"] });
 			document.getElementById("edit_profile_modal").close();
-			
+		},
+		onError: (err) => toast.error(err.message),
+	});
 
-		} catch (error) {
-			toast.error(error.message);
-		}
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		updateProfile(formData);
 	};
 
 	return (
@@ -113,7 +125,9 @@ const EditProfileModal = () => {
 							name='link'
 							onChange={handleInputChange}
 						/>
-						<button className='btn btn-primary rounded-full btn-sm text-white'>Update</button>
+						<button className='btn btn-primary rounded-full btn-sm text-white'>
+							{isUpdatingProfile ? "Updating..." : "Update"}
+						</button>
 					</form>
 				</div>
 				<form method='dialog' className='modal-backdrop'>
