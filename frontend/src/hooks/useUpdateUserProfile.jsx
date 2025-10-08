@@ -5,7 +5,7 @@ const useUpdateUserProfile = (formData) => {
     const queryClient = useQueryClient();
     const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
-    const { mutate: updateProfile, isPending: isUpdatingProfile } = useMutation({
+    const { mutateAsync: updateProfile, isPending: isUpdatingProfile } = useMutation({
         mutationFn: async () => {
             let res;
             if (formData instanceof FormData) {
